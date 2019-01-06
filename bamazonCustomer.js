@@ -225,7 +225,8 @@ function checkout() {
 }
 
 function buyItems() {
-    var update = "UPDATE products "
+    var update = "UPDATE products ";
+    var hasQuantity = true;
     connection.query("SELECT * FROM products", function(error, results) {
         if (error) throw error;
         product_list = results;
@@ -233,12 +234,19 @@ function buyItems() {
         let ids = Object.keys(cart);
         for (let i in ids) {
             update += 'SET stock_quantity = ' + (products[ids[i]].stock_quantity - cart[ids[i]])  + ' WHERE item_id = '+ ids[i] + ';'
-            console.log(update);
+            if (products[ids[i]].stock_quantity - cart[ids[i]] <0) {
+                hasQuantity = false;
+            }
         }
-        connection.query(update, function(error, results) {
-            if (error) throw error;
-            checkResults();
-        })
+        if (hasQuantity) {
+            connection.query(update, function(error, results) {
+                if (error) throw error;
+                checkResults();
+            })
+        } else {
+            console.log("Insufficent Quantity Available!!")
+        }
+        
     })
 }
 function checkResults() {
