@@ -41,7 +41,8 @@ function startSupervising() {
         } else if (response.choice == "Add New Product") {
             addNew();
         } else {
-            console.log("Sorry to hear that. Have a Good Day!")
+            console.log("Sorry to hear that. Have a Good Day!");
+            connection.end();
         }   
     })
 }
@@ -198,6 +199,103 @@ function getNames() {
 function addNew() {
     console.log('\033[2J');
     console.log(pageBreak);
-    console.log("UNDER CONSTRUCTION")
-    startSupervising();
+    var myArg = inquirer.prompt([
+        {
+            type: "input",
+            message: "What is the name of the product you would like to add?",
+            name: "choice"
+        }
+    ]).then(function(response){
+        
+        let choice = response.choice.trim();
+        if (typeof(choice) != "string" || choice.length < 2) {
+            console.log('\033[2J');
+            console.log(pageBreak);
+            console.log("Please enter a word.")
+            addNew();
+        } else if (choice.length == 0) {
+            verifyCancel2();
+        } else {
+            chooseQty(choice);
+        }
+    })
+}
+
+function verifyCancel2(item) {
+    console.log('\033[2J');
+    console.log(pageBreak);
+    var myArg = inquirer.prompt([
+        {
+            type: "list",
+            message: "Comfirm cancel add new item?",
+            choices: ["Yes", "No"],
+            name: "choice"
+        }
+    ]).then(function(response){
+        if (response.choice == "Yes") {
+            console.log('\033[2J');
+            startSupervising();
+        } else {
+            addNew();
+        }   
+    })
+}
+
+function chooseQty(item) {
+    console.log('\033[2J');
+    console.log(pageBreak);
+    var myArg = inquirer.prompt([
+        {
+            type: "input",
+            message: "How many of "+ item +" would you like to add to inventory?",
+            name: "choice"
+        }
+    ]).then(function(response){
+        
+        let choice = parseInt(response.choice);
+        if (!Number.isInteger(choice)) {
+            console.log('\033[2J');
+            console.log(pageBreak);
+            console.log("Please enter a whole number.")
+            chooseQty(item);
+        } else {
+            console.log('\033[2J');
+            pickPrice(item, choice);
+        }
+    })
+}
+
+function pickPrice(item, amount) {
+    
+    console.log(pageBreak);
+    var myArg = inquirer.prompt([
+        {
+            type: "input",
+            message: "What Price would you like to set?",
+            name: "choice"
+        }
+    ]).then(function(response){
+        
+        let choice = parseFloat(response.choice);
+        if (!Number.isFloat(choice)) {
+            console.log('\033[2J');
+            console.log(pageBreak);
+            console.log("Please enter a number.")
+            pickPrice(item ,amount);
+        } else {
+            addItemNew(item, amount, choice);
+        }
+    })
+}
+
+
+function addItemNew(item, amount, price) {
+    console.log('\033[2J');
+    console.log(pageBreak);
+    var update = "INSERT INTO products (product_name, price, stock_quantity) VALUES (\"" + item + "\", \"" + price + "\", \"" +  amount + "\");";
+    connection.query(update, function(error, results) {
+        console.log(amount + " "+ item  + " has been added to inventory at $" +price+ ".")
+        startSupervising();
+    })
+    
 }
